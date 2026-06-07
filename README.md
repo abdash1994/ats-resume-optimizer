@@ -1,31 +1,145 @@
 # ATS Resume Optimizer
 
-> **Beat every ATS filter. Free. Private. Offline-capable.**
+> **Stop getting rejected before a human ever reads your resume.**
 
-Upload your resume in any format → paste any job description → get a real-time ATS score → fix every issue → download an optimized resume. Target **90-95%+ ATS pass rate**.
+75% of resumes are eliminated by Applicant Tracking Systems (ATS) before reaching a recruiter. This tool gives you the exact same intelligence those systems use — and turns it against them.
+
+**Upload your resume → paste a job description → get a real-time score → fix every issue → download a resume that passes.**
+
+Live demo: _deploy to Vercel (free, one-click below)_
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/abdash1994/ats-resume-optimizer)
+
+---
+
+## What It Does
+
+| Step | What happens |
+|------|-------------|
+| **Upload** | Drag in your resume — PDF, Word, HTML, Markdown, or even a photo. It reads them all. |
+| **Analyze** | Paste the job description. The engine extracts required keywords using TF-IDF, detects your role category, and maps the JD to known ATS scoring patterns. |
+| **Score** | Your resume is scored across 6 dimensions against 15+ ATS systems simultaneously. You see exactly why you're failing — and by how much. |
+| **Fix** | Edit your resume inside the app. Missing keywords are highlighted. One-click applies fixes to your skills section. The score updates live as you type. |
+| **Export** | Download an ATS-safe DOCX or PDF — single column, plain fonts, no tables, no graphics. The format ATS systems can actually read. |
+
+---
+
+## Why This Exists
+
+Modern hiring is broken. A resume that would impress any human gets auto-rejected because:
+- It uses two columns (most ATS can't parse multi-column layouts)
+- It says "Work History" instead of "Work Experience"  
+- It lists "ML" but the ATS searches for "Machine Learning"
+- The PDF was made in Canva (Taleo has a 41% parse error rate on design PDFs)
+
+This tool fixes all of that — for free, without your data ever leaving your device.
+
+---
 
 ## Features
 
-- **Parse any resume format**: PDF, DOCX, HTML, Markdown, or even a photo (OCR via Tesseract.js)
-- **Score against 15+ ATS systems**: Taleo, Workday, Greenhouse, iCIMS, Lever, SAP SuccessFactors, Jobvite, ADP, BambooHR, SmartRecruiters, Bullhorn, Rippling, Ashby, JazzHR, Workable
-- **6-dimension scoring**: Keyword Match, Format Compliance, Section Completeness, Achievement Quality, Contact Info, Length/Density
-- **Real-time keyword gap analysis**: TF-IDF + exact match + acronym expansion (ML = Machine Learning, etc.)
-- **Editable resume**: Section-aware editor — contact, summary, experience, education, skills
-- **One-click fixes**: Apply suggestions directly in the editor; missing keywords auto-added to skills
-- **Export ATS-safe formats**: PDF, DOCX, HTML, Markdown
-- **100% private**: Everything runs in your browser, nothing sent to any server
-- **Offline PWA**: Works fully offline after first load; installable on any device
+### Resume Parsing (Any Format)
+- **PDF** — Mozilla's pdf.js, runs in browser, no server
+- **Word (.docx)** — mammoth.js, full text extraction
+- **HTML** — native DOMParser
+- **Markdown** — strip syntax, extract structure
+- **Images / Photos** — Tesseract.js OCR, works completely offline
+
+### ATS Scoring Engine — 15+ Systems
+
+Researched rules for every major ATS currently used by employers:
+
+| ATS | Market | Key rules enforced |
+|-----|--------|-------------------|
+| Taleo (Oracle) | Fortune 500 | Exact keyword match, DOCX only, paste-field critical |
+| Workday | Enterprise | Section name matching, date format strict |
+| Greenhouse | Tech startups | Human scorecard — readability over keywords |
+| iCIMS | Global | Keyword density, single column required |
+| Lever | Tech/startups | Semantic match, GitHub/portfolio links valued |
+| SAP SuccessFactors | Enterprise | Chronological order, exact section names |
+| Jobvite | Mid-market | Date format MM/YYYY, PDF preferred |
+| ADP | SMB/Enterprise | Legacy parser, no special characters |
+| BambooHR | SMB | Straightforward keyword match |
+| SmartRecruiters | Global | AI-assisted, handles modern formats |
+| Bullhorn | Staffing | Skills taxonomy match |
+| JazzHR | SMB | Keyword frequency weighted |
+| Rippling | Tech | LinkedIn integration, skills focused |
+| Ashby | Dev startups | GitHub links, projects section valued |
+| Workable | Global SMB | Multilingual, standard sections |
+
+### 6-Dimension Scoring
+
+```
+Total Score =
+  Keyword Match        (30%) ← JD keywords found in your resume
+  ATS Format           (25%) ← No tables, columns, images, bad fonts
+  Section Completeness (20%) ← Right sections with correct names
+  Achievement Quality  (15%) ← Quantified bullets, strong action verbs
+  Contact & Meta        (5%) ← Email, phone, LinkedIn, location
+  Length & Density      (5%) ← Word count right for your experience level
+```
+
+Each dimension drills down into specific fixable items. Every item has an explanation and, where possible, a one-click auto-fix.
+
+### Resume Editor
+- Section-by-section editing: Contact, Summary, Experience, Education, Skills
+- Missing JD keywords shown as clickable chips — add to skills in one click
+- Live score ring updates 800ms after any edit
+- Bullet-level editing with quantification prompts
+
+### Export Formats
+- **DOCX (recommended)** — universally parseable, preferred by Taleo/Workday/ADP
+- **PDF (ATS-safe)** — single column, Arial font, no images
+- **HTML** — for personal websites and portfolios
+- **Markdown** — for GitHub profiles and dev portfolios
+
+### Privacy First
+- Everything runs in your browser — no backend, no server, no database
+- Your resume is never transmitted anywhere
+- API keys (if used for Pro features) stored only in your browser's localStorage
+- Works fully offline after first load
+
+### PWA — Installable on Any Device
+- Install on Android home screen, iOS Safari, Windows, macOS
+- Fully functional without internet once installed
+- All parsing and scoring works offline
+
+### Pro Features (Optional — Free API Keys Available)
+Paste your own API key to unlock AI-powered rewrites:
+- **Groq** (free tier: 30 req/min) — fastest
+- **OpenAI GPT-4o**
+- **Anthropic Claude**
+
+Unlocks: AI bullet rewrites, professional summary generation, cover letter drafting. Core scoring is identical without any key.
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| Framework | Next.js 16 + TypeScript | SSG, App Router, PWA-ready |
+| Styling | Tailwind CSS v4 | Zero-runtime, responsive |
+| Resume Parsers | pdfjs-dist, mammoth, Tesseract.js | All run in browser |
+| ATS Engine | Custom TF-IDF + rules DB | No external API needed |
+| Editor | Section-aware React components | Live score integration |
+| Storage | IndexedDB (idb) | Offline persistence |
+| Exports | html2pdf.js, docx, turndown | Client-side generation |
+| Deployment | Vercel (free tier) | Auto-deploy on push |
+| CI | GitHub Actions | Type-check + lint + build |
+
+---
 
 ## Getting Started
 
-### Deploy to Vercel (Free, 1-click)
+### Deploy to Vercel (Recommended — Free, 1 Click)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/ats-resume-optimizer)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/abdash1994/ats-resume-optimizer)
 
 ### Run Locally
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ats-resume-optimizer
+git clone https://github.com/abdash1994/ats-resume-optimizer
 cd ats-resume-optimizer
 npm install
 npm run dev
@@ -40,52 +154,71 @@ npm run build
 npm start
 ```
 
-## Optional Pro Features (Bring Your Own API Key)
+---
 
-The core 90-95% ATS scoring is completely free. Optionally, add an API key for AI-powered rewrites:
+## How to Get a 90%+ Score
 
-- **Groq** (free tier: 30 req/min) — fastest
-- **OpenAI** GPT-4o
-- **Anthropic** Claude
+1. **Use the full job description** — paste everything: responsibilities, requirements, nice-to-haves, about the company. More text = better keyword extraction.
 
-Your key is stored only in localStorage and sent directly to the AI provider. It never goes through any backend.
+2. **Fill every section** — Contact (with LinkedIn), Summary, Experience (with bullets), Education, Skills. Missing sections cost 15-25 points each.
 
-## Tech Stack
+3. **Quantify your bullets** — "Led team" → "Led 6-person team that shipped 3 features, reducing churn by 18%". Numbers are detected and scored.
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 14 (App Router) + TypeScript |
-| Styling | Tailwind CSS 4 |
-| Resume Parsing | pdfjs-dist, mammoth, Tesseract.js (OCR) |
-| ATS Scoring | Custom TF-IDF engine + researched ATS rules DB |
-| Offline | Service Worker + IndexedDB |
-| Export | html2pdf.js, docx, turndown |
-| Deployment | Vercel (free tier) |
+4. **Add missing keywords to skills** — the yellow chips under the Skills editor are required JD keywords not found in your resume. Add them.
 
-## How 90-95% ATS Scores Are Achieved
+5. **Export as DOCX** — research confirms DOCX is universally the safest format. Taleo has a 41% parse error rate on complex PDFs.
 
-The scoring engine combines:
+6. **For Taleo applications** — always fill in the paste-text field in the application form. Taleo often runs keyword matching against that field, not the uploaded file.
 
-1. **Keyword Match (30%)** — TF-IDF extraction from JD + exact/acronym matching in resume
-2. **Format Compliance (25%)** — No tables/columns/images, standard fonts, correct date formats
-3. **Section Completeness (20%)** — All ATS-required sections present with correct names
-4. **Achievement Quality (15%)** — Quantified bullets, strong action verbs, impact language
-5. **Contact & Meta (5%)** — Email, phone, LinkedIn, location all present
-6. **Length & Density (5%)** — Word count appropriate for experience level
+---
 
-## ATS Systems Covered
+## Project Structure
 
-Taleo · Workday · Greenhouse · iCIMS · Lever · SAP SuccessFactors · Jobvite · ADP Recruiting · BambooHR · SmartRecruiters · Bullhorn · JazzHR · Recruitee · Rippling · Ashby · Workable
+```
+ats-resume-optimizer/
+├── app/                    # Next.js App Router pages
+│   ├── layout.tsx          # PWA shell, metadata, offline banner
+│   ├── page.tsx            # Landing page + upload wizard
+│   └── resume/page.tsx     # Main 3-panel workspace
+├── components/
+│   ├── ATSScorePanel/      # Score ring, dimension breakdown, per-ATS view
+│   ├── ExportPanel/        # Format selector + download
+│   ├── JDAnalyzer/         # JD input, role/level detection
+│   ├── OptimizationSuggestions/ # Ranked fixes with auto-apply
+│   ├── ProKeyInput/        # Optional AI API key management
+│   ├── PWAInit.tsx         # Service worker + install prompt
+│   ├── ResumeEditor/       # Section-aware resume editor
+│   ├── ResumeUploader/     # Drag-and-drop, format detection
+│   └── ui/                 # Button, Card, Badge, Progress, Tabs...
+├── data/
+│   ├── ats-rules.json      # Rules for 15+ ATS systems
+│   ├── role-keywords.json  # Keywords by role × experience level
+│   ├── action-verbs.json   # Strong verbs by category and level
+│   └── section-names.json  # ATS-canonical section name mappings
+├── lib/
+│   ├── ats-engine/         # Scorer, keyword matcher, TF-IDF
+│   ├── exporters/          # PDF, DOCX, HTML, Markdown generators
+│   ├── jd-analyzer/        # JD keyword extraction + role detection
+│   ├── parsers/            # PDF, DOCX, HTML, MD, Image parsers
+│   ├── resume-optimizer/   # Suggestion engine
+│   └── storage/            # IndexedDB persistence
+└── types/
+    └── resume.ts           # Full TypeScript type definitions
+```
 
-## Privacy
-
-- No backend server
-- No database
-- No analytics
-- No cookies
-- No account required
-- Resume data stored locally in IndexedDB
+---
 
 ## License
 
-MIT
+MIT — use it, fork it, build on it.
+
+---
+
+## Contributing
+
+PRs welcome. Key areas to contribute:
+- Additional ATS system rules (research-backed)
+- More role keyword databases
+- Improved OCR post-processing for image resumes
+- Cover letter generator
+- LinkedIn profile optimizer
