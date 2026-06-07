@@ -2,7 +2,7 @@
 
 > Stop getting auto-rejected. Upload any resume, paste any job description, get a real-time ATS score, fix every issue, download a resume that passes. Free forever.
 
-**Live demo:** _coming soon (deploy below)_ · **Pitch deck:** [PITCH.md](PITCH.md) · **Setup guide:** [SETUP.md](SETUP.md)
+**Live demo:** [ats-resume-optimizer-9zrzogvgu-abdash1994s-projects.vercel.app](https://ats-resume-optimizer-9zrzogvgu-abdash1994s-projects.vercel.app) · **Pitch deck:** [PITCH.md](PITCH.md) · **Setup guide:** [SETUP.md](SETUP.md)
 
 ---
 
