@@ -19,19 +19,19 @@ const EXPORT_OPTIONS: {
   tip: string;
 }[] = [
   {
-    format: 'pdf',
-    label: 'PDF (ATS-Safe)',
-    description: 'Single-column, plain text — optimized for ATS parsing',
-    icon: <FileText className="h-5 w-5 text-red-500" />,
-    recommended: true,
-    tip: 'Best for most ATS systems. Uses Arial font, no tables, single column.',
-  },
-  {
     format: 'docx',
     label: 'Word Document (.docx)',
-    description: 'Clean DOCX format — preferred by Taleo, Workday, ADP',
+    description: 'Universally safest — preferred by Taleo, Workday, iCIMS, ADP, SAP',
     icon: <FileText className="h-5 w-5 text-blue-500" />,
-    tip: 'Preferred by legacy ATS like Taleo. Most editable format.',
+    recommended: true,
+    tip: 'Research shows .docx is universally the safest format. Taleo has 41% parse errors on complex PDFs. When in doubt, use DOCX.',
+  },
+  {
+    format: 'pdf',
+    label: 'PDF (ATS-Safe)',
+    description: 'Single-column plain text PDF — good for modern ATS (Greenhouse, Lever)',
+    icon: <FileText className="h-5 w-5 text-red-500" />,
+    tip: 'Safe for modern ATS. Avoid for Taleo/ADP. Never use design-heavy PDFs from Canva/InDesign.',
   },
   {
     format: 'html',

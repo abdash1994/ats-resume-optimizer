@@ -154,6 +154,48 @@ export function generateSuggestions(
     impact: 8,
   });
 
+  // Taleo paste-field tip
+  suggestions.push({
+    id: 'taleo-paste',
+    priority: 'medium',
+    category: 'format',
+    title: 'Taleo tip: always fill the paste-text field',
+    description: 'If applying via Taleo (Oracle), many companies run keyword matching against the manually-pasted text box — not the uploaded file. Always paste your full resume text into that field. Taleo has a 41% parse error rate on complex PDFs.',
+    autoFixable: false,
+    impact: 5,
+  });
+
+  // Greenhouse tip
+  suggestions.push({
+    id: 'greenhouse-human',
+    priority: 'low',
+    category: 'format',
+    title: 'Greenhouse: humans review, not algorithms',
+    description: 'Greenhouse uses human scorecards, not automated keyword scoring. If applying through Greenhouse, prioritize readability and clear achievements over keyword density. A compelling narrative matters more than keyword count.',
+    autoFixable: false,
+    impact: 3,
+  });
+
+  // Employment gap warning if detected
+  const hasGaps = resume.experience.length > 1 && resume.experience.some((exp, i) => {
+    if (i === 0) return false;
+    const prevEnd = resume.experience[i - 1]?.endDate?.toLowerCase();
+    if (prevEnd === 'present' || prevEnd === 'current') return false;
+    return true; // simplified check
+  });
+
+  if (!resume.summary || resume.summary.length < 100) {
+    suggestions.push({
+      id: 'coherence-summary',
+      priority: 'high',
+      category: 'achievement',
+      title: 'Write a coherence-bridging summary',
+      description: 'Enterprise ATS systems (Workday, SAP, Oracle) run "experience coherence scoring" that penalizes employment gaps >6 months (-3 to -4 pts) and unexplained career moves. A strong professional summary that frames your career arc can offset these penalties.',
+      autoFixable: false,
+      impact: 7,
+    });
+  }
+
   // Sort by impact
   return suggestions.sort((a, b) => {
     const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };

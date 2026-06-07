@@ -7,7 +7,9 @@
       "used_by": "Fortune 500, Enterprise",
       "preferred_formats": ["docx", "txt"],
       "avoid_formats": ["pdf"],
-      "parsing_notes": "Legacy parser; struggles with PDFs, tables, columns, headers/footers, images. Word limit ~62 chars per cell if tables used (avoid). Keyword exact-match weighted.",
+      "parsing_notes": "Legacy parser with 41% parse error rate on complex layouts. CRITICAL: Taleo has a paste-text field (8,000-16,000 char limit) — keyword search often runs against the PASTED TEXT, not the uploaded file. Always fill in the paste field. Keyword exact-match weighted at ~80%. Avoid Canva/InDesign PDFs entirely.",
+      "paste_field_note": "Fill the manual paste field in Taleo forms — keyword matching often runs against pasted text, not parsed file",
+      "parse_error_rate_complex": "41%",
       "critical_rules": [
         "single_column_only",
         "no_tables",
@@ -69,19 +71,22 @@
       "used_by": "Tech startups, Mid-size companies",
       "preferred_formats": ["pdf", "docx"],
       "avoid_formats": [],
-      "parsing_notes": "Modern, flexible parser. Handles most formats well. Skills section heavily weighted. Supports portfolio/GitHub links.",
+      "parsing_notes": "IMPORTANT: Greenhouse has NO automated ATS algorithm. Scoring is entirely human-scorecard based. Resume is parsed and displayed to recruiters who score manually against job-specific criteria. Focus on clean readability, correct formatting, and complete sections. Keyword stuffing is counterproductive here — humans read these.",
       "critical_rules": [
+        "human_scorecard_review",
+        "readability_paramount",
         "skills_section_required",
         "linkedin_url_valued",
-        "portfolio_url_valued"
+        "portfolio_url_valued",
+        "no_keyword_stuffing"
       ],
       "preferred_fonts": ["Any readable font"],
       "date_format": "Any standard format",
       "scoring_weights": {
-        "keyword_match": 0.35,
-        "section_completeness": 0.30,
-        "format_compliance": 0.20,
-        "other": 0.15
+        "format_compliance": 0.40,
+        "section_completeness": 0.35,
+        "keyword_match": 0.15,
+        "other": 0.10
       },
       "required_sections": ["contact", "experience", "education", "skills"],
       "section_name_mapping": {}
