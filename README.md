@@ -1,12 +1,10 @@
 # ATS Resume Optimizer
 
-> **Stop getting rejected before a human ever reads your resume.**
+> Stop getting auto-rejected. Upload any resume, paste any job description, get a real-time ATS score, fix every issue, download a resume that passes. Free forever.
 
-75% of resumes are eliminated by Applicant Tracking Systems (ATS) before reaching a recruiter. This tool gives you the exact same intelligence those systems use — and turns it against them.
+**Live demo:** _coming soon (deploy below)_ · **Pitch deck:** [PITCH.md](PITCH.md) · **Setup guide:** [SETUP.md](SETUP.md)
 
-**Upload your resume → paste a job description → get a real-time score → fix every issue → download a resume that passes.**
-
-Live demo: _deploy to Vercel (free, one-click below)_
+---
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/abdash1994/ats-resume-optimizer)
 
