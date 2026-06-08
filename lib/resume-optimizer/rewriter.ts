@@ -133,6 +133,38 @@ export function generateSkillsAddition(
   return [...new Set(toAdd)];
 }
 
+// ─── Missing bullets generator ───────────────────────────────────────────────
+
+export function generateMissingBullets(resume: ResumeData, jobContext: JobContext): string {
+  const expWithoutBullets = resume.experience.filter(e => e.bullets.length === 0);
+  if (expWithoutBullets.length === 0) return '';
+
+  const roleKeywords = jobContext.jobDescription
+    .split(/\W+/)
+    .filter(w => w.length > 4)
+    .slice(0, 6)
+    .join(', ');
+
+  const lines: string[] = [
+    `Add these bullets to your experience entries. Edit the [placeholders] with real numbers:\n`,
+  ];
+
+  for (const exp of expWithoutBullets) {
+    lines.push(`━━ ${exp.title || 'Role'} at ${exp.company || 'Company'} ━━`);
+    lines.push(`• [Led/Built/Drove] [key initiative] resulting in [X% improvement / $X savings / N users impacted]`);
+    lines.push(`• Managed [product/feature/team] delivering [outcome] for [X stakeholders/users/clients]`);
+    lines.push(`• Implemented [tool/process] reducing [pain point] by [X%] and improving [metric]`);
+    lines.push(`• Collaborated with [teams/stakeholders] to [achieve goal], contributing to [business result]\n`);
+  }
+
+  lines.push(`💡 Tips for ATS bullet points:`);
+  lines.push(`• Start with a strong action verb (Led, Built, Drove, Scaled, Reduced)`);
+  lines.push(`• Add real numbers: %, $, time, users, team size`);
+  lines.push(`• Include relevant keywords from the JD: ${roleKeywords}`);
+
+  return lines.join('\n');
+}
+
 // ─── Pro LLM rewriter (when API key is available) ─────────────────────────────
 
 export interface LLMRewriteRequest {

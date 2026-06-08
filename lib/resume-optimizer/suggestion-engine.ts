@@ -121,8 +121,8 @@ export function generateSuggestions(
       priority: 'critical',
       category: 'achievement',
       title: `Add bullets to ${expWithoutBullets.length} experience entries`,
-      description: `${expWithoutBullets.map(e => e.title + ' at ' + e.company).join(', ')} have no bullet points. Every role needs 3-5 achievement-focused bullets for ATS parsing.`,
-      autoFixable: false,
+      description: `${expWithoutBullets.map(e => (e.title || 'Role') + ' at ' + (e.company || 'Company')).join(', ')} have no bullet points. Click "Generate & Review" to get ATS-optimized bullet templates.`,
+      autoFixable: true,
       impact: 12,
     });
   }

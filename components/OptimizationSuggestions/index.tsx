@@ -75,6 +75,18 @@ function SuggestionCard({
       };
     }
 
+    if (suggestion.id === 'add-bullets') {
+      const { generateMissingBullets } = await import('@/lib/resume-optimizer/rewriter');
+      const generated = generateMissingBullets(resume, jobContext!);
+      return {
+        type: 'bullet',
+        title: 'Generate Bullet Points for Empty Roles',
+        description: 'Review these templates, fill in real numbers, then copy to your Experience editor',
+        generatedContent: generated || 'No empty experience entries found.',
+        currentContent: '',
+      };
+    }
+
     if (suggestion.id === 'quantify-bullets') {
       const { generateBulletImprovements } = await import('@/lib/resume-optimizer/rewriter');
       const improvements = generateBulletImprovements(resume);
@@ -83,7 +95,7 @@ function SuggestionCard({
       return {
         type: 'bullet',
         title: 'Strengthen Bullet Points',
-        description: 'Review suggested improvements — edit the "After" lines, then copy to your resume',
+        description: 'Review suggested improvements — edit the "After" lines, then copy to your Experience editor',
         generatedContent: preview,
         currentContent: '',
       };

@@ -31,11 +31,18 @@ function extractGitHub(text: string): string {
 }
 
 function extractLocation(text: string): string {
-  // City, State (US) or City, Country patterns
-  const m = text.match(
-    /\b([A-Z][a-zA-Z\s]{1,20}),\s*([A-Z]{2}|[A-Z][a-zA-Z\s]{2,15})\b/
-  );
-  return m ? m[0] : '';
+  // Match known city patterns first (avoids matching names as location)
+  const cityPatterns = [
+    /\b(Bangalore|Bengaluru|Mumbai|Delhi|New Delhi|Hyderabad|Chennai|Pune|Kolkata|Noida|Gurgaon|Gurugram|Ahmedabad|Jaipur|Surat|Lucknow|Chandigarh|Kochi|Bhopal|Indore|Coimbatore)[,\s]+(?:India|IN|Karnataka|Maharashtra|Telangana|Tamil Nadu|UP|Haryana|Gujarat|Rajasthan|Kerala|MP)\b/i,
+    /\b(New York|Los Angeles|Chicago|Houston|Phoenix|Philadelphia|San Antonio|San Diego|Dallas|San Jose|Austin|Jacksonville|San Francisco|Seattle|Denver|Boston|Nashville|Portland|Las Vegas|Washington)[,\s]+(?:NY|CA|IL|TX|AZ|PA|FL|WA|CO|MA|TN|OR|NV|DC|[A-Z]{2})\b/i,
+    // Generic: "City, ST" or "City, Country" — city must start with capital, be lowercase-dominant (not a name)
+    /\b([A-Z][a-z]{2,15}(?:\s[A-Z][a-z]{2,12})?),\s+([A-Z]{2}|[A-Z][a-z]{3,15})\b/,
+  ];
+  for (const pattern of cityPatterns) {
+    const m = text.match(pattern);
+    if (m) return m[0].trim();
+  }
+  return '';
 }
 
 // ─── Section detection ───────────────────────────────────────────────────────

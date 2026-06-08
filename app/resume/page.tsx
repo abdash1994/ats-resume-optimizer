@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { ArrowLeft, BarChart2, Edit3, Lightbulb, Download, RefreshCw, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, BarChart2, Edit3, Lightbulb, Download, RefreshCw, Save, CheckCircle, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -11,6 +11,7 @@ import { OptimizationSuggestions } from '@/components/OptimizationSuggestions';
 import { ExportPanel } from '@/components/ExportPanel';
 import { JDAnalyzer } from '@/components/JDAnalyzer';
 import { AutoOptimize } from '@/components/AutoOptimize';
+import { ResumePreview } from '@/components/ResumePreview';
 import { scoreResume } from '@/lib/ats-engine/scorer';
 import { generateSuggestions } from '@/lib/resume-optimizer/suggestion-engine';
 import type { ResumeData, JobContext, ATSScore, OptimizationSuggestion } from '@/types/resume';
@@ -224,6 +225,10 @@ export default function ResumePage() {
                         </span>
                       )}
                     </TabsTrigger>
+                    <TabsTrigger value="preview">
+                      <FileText className="h-3.5 w-3.5 mr-1.5" />
+                      Preview
+                    </TabsTrigger>
                     <TabsTrigger value="export">
                       <Download className="h-3.5 w-3.5 mr-1.5" />
                       Export
@@ -280,6 +285,16 @@ export default function ResumePage() {
                         <p className="text-sm font-medium">Analyze your JD to get optimization suggestions</p>
                       </div>
                     )}
+                  </TabsContent>
+
+                  <TabsContent value="preview">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Resume Preview</p>
+                        <p className="text-xs text-gray-500">Reflects your current edits</p>
+                      </div>
+                      <ResumePreview resume={resume} />
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="export">
