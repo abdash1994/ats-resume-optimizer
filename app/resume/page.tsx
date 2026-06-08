@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { ArrowLeft, BarChart2, Edit3, Lightbulb, Download, RefreshCw, Save, CheckCircle, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ResumeEditor } from '@/components/ResumeEditor';
@@ -18,6 +19,7 @@ import type { ResumeData, JobContext, ATSScore, OptimizationSuggestion } from '@
 import { cn } from '@/lib/utils';
 
 export default function ResumePage() {
+  const router = useRouter();
   const [resume, setResume] = useState<ResumeData | null>(null);
   const [jobContext, setJobContext] = useState<JobContext | null>(null);
   const [score, setScore] = useState<ATSScore | null>(null);
@@ -123,9 +125,13 @@ export default function ResumePage() {
       <header className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
         <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Link href="/" className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            <button
+              onClick={() => router.push('/')}
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              aria-label="Back to home"
+            >
               <ArrowLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            </Link>
+            </button>
             <div>
               <p className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[200px]">
                 {resume.contact.name || 'Resume'}

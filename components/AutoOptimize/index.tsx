@@ -139,11 +139,11 @@ export function AutoOptimize({ resume, score, jobContext, onApply }: AutoOptimiz
           </div>
           <ChevronRight className="h-5 w-5 text-blue-300" />
           <div className="text-center">
-            <p className="text-2xl font-black text-green-300">{Math.min(score.total + potentialGain, 99)}</p>
-            <p className="text-xs text-blue-200">Estimated after</p>
+            <p className="text-2xl font-black text-green-300">{Math.min(score.total + potentialGain, 99)}+</p>
+            <p className="text-xs text-blue-200">Est. after fixes</p>
           </div>
           <div className="ml-auto text-right">
-            <p className="text-sm font-bold text-green-300">+{potentialGain} pts</p>
+            <p className="text-sm font-bold text-green-300">+{potentialGain}+ pts</p>
             <p className="text-xs text-blue-200">{changes.length || '3-5'} fixes</p>
           </div>
         </div>

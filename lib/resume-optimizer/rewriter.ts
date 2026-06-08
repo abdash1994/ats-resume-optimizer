@@ -22,16 +22,20 @@ export function generateSummary(resume: ResumeData, jobContext: JobContext, miss
 
   const yearsStr = yearsOfExperience > 0 ? `${yearsOfExperience}+ years of` : 'proven';
 
+  // Most recent role for context (must be declared before titleAlreadyHasLevel)
+  const recentJob = experience.length > 0 ? experience[0] : null;
+  const recentTitle = recentJob?.title || role;
+  const recentCompany = recentJob?.company ? ` at ${recentJob.company}` : '';
+
+  // Don't prepend levelLabel if the job title already starts with it (avoids "Senior Senior Engineer")
+  const titleAlreadyHasLevel = recentTitle.toLowerCase().startsWith(levelLabel.toLowerCase());
+  const titlePrefix = titleAlreadyHasLevel ? '' : `${levelLabel} `;
+
   // Pick top skills from what the candidate already has + top missing JD keywords
   const topSkills = [
     ...skills.slice(0, 4),
     ...missingKeywords.slice(0, 3).filter(k => !skills.includes(k)),
   ].slice(0, 5).join(', ');
-
-  // Most recent role for context
-  const recentJob = experience.length > 0 ? experience[0] : null;
-  const recentTitle = recentJob?.title || role;
-  const recentCompany = recentJob?.company ? ` at ${recentJob.company}` : '';
 
   // Pick a quantified achievement if available
   const quantifiedBullet = experience
@@ -41,7 +45,7 @@ export function generateSummary(resume: ResumeData, jobContext: JobContext, miss
     ? ` Most recently ${quantifiedBullet.toLowerCase().replace(/^[A-Z]/, c => c.toLowerCase())}.`
     : '';
 
-  return `${levelLabel} ${recentTitle}${recentCompany} with ${yearsStr} experience delivering impactful results across ${topSkills}.${achievementLine} Passionate about ${role.toLowerCase()} and building scalable solutions that drive measurable business outcomes.`.trim();
+  return `${titlePrefix}${recentTitle}${recentCompany} with ${yearsStr} experience delivering impactful results across ${topSkills}.${achievementLine} Passionate about ${role.toLowerCase()} and driving measurable business outcomes.`.trim();
 }
 
 // ─── Bullet point improvement generator ──────────────────────────────────────
