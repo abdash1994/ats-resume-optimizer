@@ -4,8 +4,9 @@ import { parseRawTextToResume } from './text-parser';
 export async function parsePDF(file: File): Promise<ResumeData> {
   const pdfjsLib = await import('pdfjs-dist');
 
-  // Serve worker from public folder — no CDN dependency, works offline
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+  // Version-stamped URL busts the browser cache when pdfjs upgrades.
+  // The file is served from /public and copied fresh by the postinstall script.
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs?v=${pdfjsLib.version}`;
 
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
