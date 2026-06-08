@@ -10,6 +10,7 @@ import { ATSScorePanel } from '@/components/ATSScorePanel';
 import { OptimizationSuggestions } from '@/components/OptimizationSuggestions';
 import { ExportPanel } from '@/components/ExportPanel';
 import { JDAnalyzer } from '@/components/JDAnalyzer';
+import { AutoOptimize } from '@/components/AutoOptimize';
 import { scoreResume } from '@/lib/ats-engine/scorer';
 import { generateSuggestions } from '@/lib/resume-optimizer/suggestion-engine';
 import type { ResumeData, JobContext, ATSScore, OptimizationSuggestion } from '@/types/resume';
@@ -216,10 +217,10 @@ export default function ResumePage() {
                     </TabsTrigger>
                     <TabsTrigger value="suggestions">
                       <Lightbulb className="h-3.5 w-3.5 mr-1.5" />
-                      Suggestions
-                      {suggestions.filter(s => s.priority === 'critical').length > 0 && (
-                        <span className="ml-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] flex items-center justify-center px-1">
-                          {suggestions.filter(s => s.priority === 'critical').length}
+                      Fixes
+                      {suggestions.length > 0 && (
+                        <span className="ml-1.5 bg-orange-500 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] flex items-center justify-center px-1">
+                          {suggestions.length}
                         </span>
                       )}
                     </TabsTrigger>
@@ -238,7 +239,22 @@ export default function ResumePage() {
                         <p className="text-xs text-red-300 font-mono break-all">{scoreError}</p>
                       </div>
                     ) : score ? (
-                      <ATSScorePanel score={score} />
+                      <div className="space-y-4">
+                        {score.total < 90 && jobContext && (
+                          <AutoOptimize
+                            resume={resume}
+                            score={score}
+                            jobContext={jobContext}
+                            onApply={(updated) => {
+                              handleResumeChange(updated);
+                              if (jobContext) {
+                                setTimeout(() => runScoring(updated, jobContext), 150);
+                              }
+                            }}
+                          />
+                        )}
+                        <ATSScorePanel score={score} />
+                      </div>
                     ) : (
                       <div className="text-center py-16 text-gray-400">
                         <BarChart2 className="h-12 w-12 mx-auto mb-3 opacity-40" />
