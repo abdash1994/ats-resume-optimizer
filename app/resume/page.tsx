@@ -21,6 +21,7 @@ export default function ResumePage() {
   const [score, setScore] = useState<ATSScore | null>(null);
   const [suggestions, setSuggestions] = useState<OptimizationSuggestion[]>([]);
   const [isScoring, setIsScoring] = useState(false);
+  const [scoreError, setScoreError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('editor');
   const [showExport, setShowExport] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -52,12 +53,17 @@ export default function ResumePage() {
 
   const runScoring = useCallback(async (r: ResumeData, jc: JobContext) => {
     setIsScoring(true);
+    setScoreError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 50)); // yield to render
+      await new Promise(resolve => setTimeout(resolve, 50));
       const newScore = scoreResume(r, jc);
       const newSuggestions = generateSuggestions(newScore, r, jc);
       setScore(newScore);
       setSuggestions(newSuggestions);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setScoreError(msg);
+      console.error('Scoring failed:', err);
     } finally {
       setIsScoring(false);
     }
@@ -220,7 +226,12 @@ export default function ResumePage() {
 
                 <div className="p-4 max-h-[calc(100vh-12rem)] overflow-y-auto">
                   <TabsContent value="score">
-                    {score ? (
+                    {scoreError ? (
+                      <div className="rounded-xl bg-red-950/30 border border-red-700 p-4 text-center">
+                        <p className="text-sm font-semibold text-red-400 mb-1">Scoring error</p>
+                        <p className="text-xs text-red-300 font-mono break-all">{scoreError}</p>
+                      </div>
+                    ) : score ? (
                       <ATSScorePanel score={score} />
                     ) : (
                       <div className="text-center py-16 text-gray-400">
