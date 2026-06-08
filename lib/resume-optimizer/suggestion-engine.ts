@@ -27,8 +27,8 @@ export function generateSuggestions(
       priority: 'critical',
       category: 'section',
       title: 'Add Professional Summary',
-      description: `A 2-4 sentence summary at the top of your resume that includes your top keywords is one of the highest-impact additions. ATS systems weight the summary heavily for keyword scanning.`,
-      autoFixable: false,
+      description: `A 2-4 sentence summary is one of the highest-impact ATS additions. Click "Generate & Review" to get a draft based on your resume + job description.`,
+      autoFixable: true,
       impact: 12,
     });
   }
@@ -69,9 +69,9 @@ export function generateSuggestions(
       id: 'quantify-bullets',
       priority: 'high',
       category: 'achievement',
-      title: 'Add numbers to your bullet points',
-      description: `Only ${quantifiedBullets.length} of ${bullets.length} bullets have quantified results. ATS systems and recruiters heavily reward metrics. Add percentages, dollar amounts, user counts, or time savings to at least 50% of your bullets.`,
-      autoFixable: false,
+      title: 'Strengthen your bullet points',
+      description: `Only ${quantifiedBullets.length} of ${bullets.length} bullets have quantified results. Click "Generate & Review" to see suggested improvements with placeholders for your real numbers.`,
+      autoFixable: true,
       impact: 10,
     });
   }
@@ -107,8 +107,8 @@ export function generateSuggestions(
       priority: 'high',
       category: 'keyword',
       title: 'Strengthen summary with key terms',
-      description: `Your summary doesn't include key terms from the JD: "${topMissing}". Weave 3-5 top keywords into your summary naturally for maximum ATS impact.`,
-      autoFixable: false,
+      description: `Your summary is missing key JD terms: "${topMissing}". Click "Generate & Review" to get a rewritten summary with these keywords woven in naturally.`,
+      autoFixable: true,
       impact: 7,
     });
   }

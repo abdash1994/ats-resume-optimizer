@@ -84,7 +84,13 @@ export default function ResumePage() {
 
   const handleApplySuggestion = useCallback((id: string, updated: ResumeData) => {
     setResume(updated);
-  }, []);
+    // Force immediate rescore after applying a fix
+    if (jobContext) {
+      setTimeout(() => runScoring(updated, jobContext), 100);
+    }
+    // Switch to score tab so user sees updated score
+    setActiveTab('score');
+  }, [jobContext, runScoring]);
 
   const handleSave = useCallback(() => {
     if (!resume) return;
@@ -247,6 +253,8 @@ export default function ResumePage() {
                       <OptimizationSuggestions
                         suggestions={suggestions}
                         resume={resume}
+                        jobContext={jobContext}
+                        preferredKeywords={score?.extractedKeywords.filter(k => k.importance === 'preferred' && !k.found).map(k => k.keyword) || []}
                         onApplySuggestion={handleApplySuggestion}
                         missingKeywords={score?.missingKeywords}
                       />

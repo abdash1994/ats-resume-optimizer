@@ -1,17 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Zap, AlertTriangle, Info, CheckCircle, ArrowRight, TrendingUp } from 'lucide-react';
+import { Zap, AlertTriangle, Info, CheckCircle, ArrowRight, TrendingUp, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import type { OptimizationSuggestion, ResumeData } from '@/types/resume';
+import type { OptimizationSuggestion, ResumeData, JobContext } from '@/types/resume';
+import type { AutoFixPayload } from '@/components/AutoFixModal';
+import { AutoFixModal } from '@/components/AutoFixModal';
 
 interface OptimizationSuggestionsProps {
   suggestions: OptimizationSuggestion[];
   resume: ResumeData;
+  jobContext: JobContext | null;
   onApplySuggestion: (suggestionId: string, updatedResume: ResumeData) => void;
   missingKeywords?: string[];
+  preferredKeywords?: string[];
+  proApiKey?: string;
+  proProvider?: 'groq' | 'openai' | 'anthropic';
 }
 
 const PRIORITY_CONFIG = {
@@ -23,85 +28,150 @@ const PRIORITY_CONFIG = {
 
 function SuggestionCard({
   suggestion,
-  onApply,
   resume,
+  jobContext,
   missingKeywords,
+  preferredKeywords,
+  proApiKey,
+  proProvider,
+  onApply,
 }: {
   suggestion: OptimizationSuggestion;
-  onApply: (id: string, resume: ResumeData) => void;
   resume: ResumeData;
+  jobContext: JobContext | null;
   missingKeywords: string[];
+  preferredKeywords: string[];
+  proApiKey?: string;
+  proProvider?: 'groq' | 'openai' | 'anthropic';
+  onApply: (id: string, resume: ResumeData) => void;
 }) {
   const [applied, setApplied] = useState(false);
+  const [modalPayload, setModalPayload] = useState<AutoFixPayload | null>(null);
   const config = PRIORITY_CONFIG[suggestion.priority];
   const Icon = config.icon;
 
-  const handleApply = () => {
-    if (suggestion.id === 'expand-skills' && suggestion.autoFixable) {
-      // Auto-add missing keywords to skills section
-      const toAdd = missingKeywords.slice(0, 8);
-      const updatedResume: ResumeData = {
-        ...resume,
-        skills: [...new Set([...resume.skills, ...toAdd])],
+  const buildPayload = async (): Promise<AutoFixPayload | null> => {
+    const { generateSummary, generateSkillsAddition } = await import('@/lib/resume-optimizer/rewriter');
+
+    if (suggestion.id === 'add-summary' || suggestion.id === 'summary-keywords') {
+      const generated = generateSummary(resume, jobContext!, missingKeywords);
+      return {
+        type: 'summary',
+        title: 'Generate Professional Summary',
+        description: 'Review and edit before applying — include your real achievements',
+        generatedContent: generated,
+        currentContent: resume.summary || '',
       };
-      setApplied(true);
-      onApply(suggestion.id, updatedResume);
     }
+
+    if (suggestion.id === 'expand-skills' || suggestion.id.startsWith('kw-missing-')) {
+      const toAdd = generateSkillsAddition(resume.skills, missingKeywords, preferredKeywords);
+      return {
+        type: 'skills',
+        title: 'Add Missing Keywords to Skills',
+        description: 'Select which keywords to add — they match the job description',
+        generatedContent: '',
+        suggestedSkills: toAdd,
+      };
+    }
+
+    if (suggestion.id === 'quantify-bullets') {
+      const { generateBulletImprovements } = await import('@/lib/resume-optimizer/rewriter');
+      const improvements = generateBulletImprovements(resume);
+      if (improvements.length === 0) return null;
+      const preview = improvements.map(i => `Before: ${i.original}\nAfter:  ${i.improved}`).join('\n\n');
+      return {
+        type: 'bullet',
+        title: 'Strengthen Bullet Points',
+        description: 'Review suggested improvements — edit the "After" lines, then copy to your resume',
+        generatedContent: preview,
+        currentContent: '',
+      };
+    }
+
+    return null;
+  };
+
+  const handleAutoFix = async () => {
+    if (!jobContext) return;
+    const payload = await buildPayload();
+    if (payload) setModalPayload(payload);
+  };
+
+  const handleModalApply = (updated: ResumeData) => {
+    setApplied(true);
+    onApply(suggestion.id, updated);
   };
 
   return (
-    <div className={cn(
-      'rounded-xl border p-4 transition-all duration-200',
-      applied ? 'opacity-60 border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/20' : config.border,
-      'hover:shadow-sm'
-    )}>
-      <div className="flex gap-3">
-        <div className={cn('shrink-0 mt-0.5', config.iconColor)}>
-          {applied ? <CheckCircle className="h-5 w-5 text-green-500" /> : <Icon className="h-5 w-5" />}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <p className={cn('text-sm font-semibold', applied ? 'text-green-700 dark:text-green-400 line-through' : 'text-gray-900 dark:text-white')}>
-              {applied ? 'Applied!' : suggestion.title}
-            </p>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-xs text-green-600 dark:text-green-400 font-bold flex items-center gap-0.5">
-                <TrendingUp className="h-3 w-3" />+{suggestion.impact}pts
-              </span>
-              <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', config.color)}>
-                {suggestion.priority}
-              </span>
-            </div>
+    <>
+      <div className={cn(
+        'rounded-xl border p-4 transition-all duration-200',
+        applied ? 'opacity-60 border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-950/20' : config.border,
+        'hover:shadow-sm'
+      )}>
+        <div className="flex gap-3">
+          <div className={cn('shrink-0 mt-0.5', config.iconColor)}>
+            {applied ? <CheckCircle className="h-5 w-5 text-green-500" /> : <Icon className="h-5 w-5" />}
           </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <p className={cn('text-sm font-semibold', applied ? 'text-green-700 dark:text-green-400 line-through' : 'text-gray-900 dark:text-white')}>
+                {applied ? 'Applied!' : suggestion.title}
+              </p>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs text-green-600 dark:text-green-400 font-bold flex items-center gap-0.5">
+                  <TrendingUp className="h-3 w-3" />+{suggestion.impact}pts
+                </span>
+                <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', config.color)}>
+                  {suggestion.priority}
+                </span>
+              </div>
+            </div>
 
-          {!applied && (
-            <>
-              <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{suggestion.description}</p>
-              {suggestion.autoFixable && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 h-7 text-xs gap-1 border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30"
-                  onClick={handleApply}
-                >
-                  <Zap className="h-3 w-3" />
-                  Auto-fix this
-                  <ArrowRight className="h-3 w-3" />
-                </Button>
-              )}
-            </>
-          )}
+            {!applied && (
+              <>
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{suggestion.description}</p>
+                {suggestion.autoFixable && jobContext && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 h-7 text-xs gap-1.5 border-blue-400 text-blue-600 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-400 dark:hover:bg-blue-950/30"
+                    onClick={handleAutoFix}
+                  >
+                    <Wand2 className="h-3 w-3" />
+                    Generate &amp; Review
+                    <ArrowRight className="h-3 w-3" />
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <AutoFixModal
+        payload={modalPayload}
+        resume={resume}
+        jobContext={jobContext}
+        proApiKey={proApiKey}
+        proProvider={proProvider}
+        onApply={handleModalApply}
+        onClose={() => setModalPayload(null)}
+      />
+    </>
   );
 }
 
 export function OptimizationSuggestions({
   suggestions,
   resume,
+  jobContext,
   onApplySuggestion,
   missingKeywords = [],
+  preferredKeywords = [],
+  proApiKey,
+  proProvider,
 }: OptimizationSuggestionsProps) {
   const [filter, setFilter] = useState<'all' | 'critical' | 'high' | 'medium'>('all');
 
@@ -124,7 +194,7 @@ export function OptimizationSuggestions({
         <p className="text-sm font-semibold opacity-90">Potential score improvement</p>
         <p className="text-3xl font-black">+{Math.min(totalImpact, 40)} points</p>
         <p className="text-xs opacity-75 mt-1">
-          {suggestions.length} suggestions across {Object.values(counts).filter(Boolean).length} priority levels
+          {suggestions.length} suggestions · click <strong>Generate &amp; Review</strong> to auto-fix and edit before applying
         </p>
       </div>
 
@@ -163,9 +233,13 @@ export function OptimizationSuggestions({
             <SuggestionCard
               key={suggestion.id}
               suggestion={suggestion}
-              onApply={onApplySuggestion}
               resume={resume}
+              jobContext={jobContext}
               missingKeywords={missingKeywords}
+              preferredKeywords={preferredKeywords}
+              proApiKey={proApiKey}
+              proProvider={proProvider}
+              onApply={onApplySuggestion}
             />
           ))
         )}
