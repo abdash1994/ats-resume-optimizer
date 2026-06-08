@@ -257,7 +257,10 @@ function scoreAchievementQuality(resume: ResumeData): ATSScoreDimension {
   score += quantifiedRate * 40;
 
   // Check for action verbs
-  const allActionVerbs = Object.values(actionVerbs).flat().map(v => v.toLowerCase());
+  const allActionVerbs = Object.values(actionVerbs)
+    .flat()
+    .filter((v): v is string => typeof v === 'string')
+    .map(v => v.toLowerCase());
   const bulletsWithActionVerbs = bullets.filter(b => {
     const firstWord = b.split(' ')[0]?.toLowerCase().replace(/[.,]/, '');
     return allActionVerbs.includes(firstWord);
