@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --font-inter: 'Inter', sans-serif;
@@ -15,58 +17,18 @@ body {
 }
 
 /* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(107, 114, 128, 0.4);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 114, 128, 0.6);
-}
-
-/* Transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-/* Focus rings */
-*:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(107,114,128,0.4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(107,114,128,0.6); }
 
 /* Selection */
-::selection {
-  background: #3b82f6;
-  color: white;
-}
+::selection { background: #3b82f6; color: white; }
 
-/* Progress animation */
-@keyframes progress-fill {
-  from { width: 0; }
-  to { width: var(--progress-width); }
-}
+/* Mobile tap highlight */
+* { -webkit-tap-highlight-color: transparent; }
 
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #60a5fa, #818cf8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* PWA install prompt */
+/* PWA install banner */
 .install-banner {
   position: fixed;
   bottom: 1rem;
@@ -75,22 +37,4 @@ body {
   z-index: 100;
   width: calc(100% - 2rem);
   max-width: 400px;
-}
-
-/* Mobile tap highlight */
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Smooth textarea resize */
-textarea {
-  resize: vertical;
-  transition: none;
-}
-
-/* Dark mode form elements */
-@media (prefers-color-scheme: dark) {
-  input, textarea, select {
-    color-scheme: dark;
-  }
 }
