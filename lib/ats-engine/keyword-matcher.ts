@@ -4,6 +4,9 @@ const ACRONYM_MAP: Record<string, string[]> = {
   ml: ['machine learning'],
   ai: ['artificial intelligence'],
   nlp: ['natural language processing'],
+  'ab testing': ['a/b testing', 'split testing'],
+  'a/b testing': ['ab testing', 'split testing'],
+  'abtesting': ['a/b testing', 'ab testing'],
   cv: ['computer vision'],
   dl: ['deep learning'],
   api: ['application programming interface'],
@@ -52,7 +55,13 @@ const ACRONYM_MAP: Record<string, string[]> = {
 };
 
 function normalize(text: string): string {
-  return text.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  return text
+    .toLowerCase()
+    // Normalize A/B → ab, CI/CD → cicd, etc before stripping special chars
+    .replace(/([a-z])\/([a-z])/gi, '$1$2')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function expandWithAcronyms(keyword: string): string[] {

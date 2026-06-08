@@ -3,19 +3,69 @@ import roleKeywordsData from '@/data/role-keywords.json';
 
 const roleKeywords = roleKeywordsData as Record<string, Record<string, string[]>>;
 
+// Comprehensive stop word list — generic words that are never useful as ATS keywords
 const STOP_WORDS = new Set([
-  'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-  'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
-  'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had',
-  'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might',
-  'shall', 'can', 'not', 'no', 'nor', 'so', 'yet', 'both', 'either',
-  'this', 'that', 'these', 'those', 'we', 'you', 'he', 'she', 'it', 'they',
-  'their', 'our', 'your', 'my', 'his', 'her', 'its', 'if', 'as', 'than',
-  'then', 'when', 'where', 'while', 'although', 'though', 'also', 'such',
-  'including', 'across', 'within', 'must', 'required', 'preferred', 'etc',
-  'strong', 'excellent', 'good', 'great', 'ability', 'experience', 'work',
-  'team', 'company', 'join', 'looking', 'seeking', 'opportunity', 'role',
-  'position', 'job', 'apply', 'candidate', 'ideal', 'plus', 'bonus',
+  // Articles, prepositions, conjunctions
+  'a','an','the','and','or','but','in','on','at','to','for','of','with','by',
+  'from','up','about','into','through','during','before','after','above','below',
+  'between','out','off','over','under','again','further','then','once',
+  // Pronouns
+  'i','me','my','we','our','you','your','he','his','she','her','it','its',
+  'they','their','them','us','who','which','what','this','that','these','those',
+  // Auxiliary verbs
+  'is','are','was','were','be','been','being','have','has','had','do','does',
+  'did','will','would','could','should','may','might','shall','can','cannot',
+  'not','no','nor','so','yet','both','either','neither',
+  // Common adjectives/adverbs that appear in JDs but aren't skills
+  'strong','excellent','good','great','best','new','high','key','main','top',
+  'very','highly','well','fast','quick','deep','wide','large','small','full',
+  'clear','able','basic','core','real','own','free','open','hard','soft',
+  // Common JD fluff words
+  'ability','skill','skills','knowledge','understanding','familiarity','awareness',
+  'experience','experiences','background','expertise','proficiency','proficient',
+  'proven','demonstrated','working','work','works','worked','worked',
+  'team','teams','company','companies','organization','organizations','firm',
+  'business','businesses','startup','enterprise','environment','setting',
+  'join','joining','seek','seeking','looking','apply','applying','candidate',
+  'candidates','applicant','hire','hiring','ideal','opportunity','role','roles',
+  'position','positions','job','jobs','required','requirement','requirements',
+  'preferred','preference','nice','bonus','plus','benefit','benefits',
+  'including','includes','include','across','within','outside','throughout',
+  'such','like','also','both','either','however','therefore','thus','hence',
+  'where','when','while','although','though','since','because','if','unless',
+  'than','then','else','other','others','another','each','every','all','any',
+  'some','most','more','many','much','few','less','own','new','old','various',
+  'different','similar','related','relevant','applicable','appropriate',
+  // Common nouns in JDs that aren't keywords
+  'year','years','month','months','day','days','time','times','level','levels',
+  'area','areas','field','fields','industry','industries','sector','sectors',
+  'type','types','kind','kinds','set','sets','list','item','items','part',
+  'parts','way','ways','use','uses','point','points','place','places','case',
+  'cases','example','examples','people','person','member','members','group',
+  'groups','cross','functional','based','driven','focused','oriented','ready',
+  'friendly','savvy','native','first','second','third','etc','e.g','i.e',
+  // Writing/communication generic
+  'write','writing','written','communicate','communication','present','presentation',
+  'verbal','communicate','report','reports','document','documentation','note','notes',
+  // Generic verbs that aren't skills
+  'build','builds','built','create','creates','created','make','makes','made',
+  'help','helps','ensure','ensures','provide','provides','provided','support',
+  'supports','supported','lead','leads','manage','manages','managed','handle',
+  'handles','handled','work','works','worked','drive','drives','deliver','delivers',
+  'own','owns','define','defines','identify','identifies','develop','develops',
+  'client','clients','customer','customers','user','users','stakeholder',
+  'stakeholders','partner','partners','internal','external',
+  // Short/numeric
+  '1','2','3','4','5','6','7','8','9','10','one','two','three','four','five',
+  'six','seven','eight','nine','ten','plus','minus',
+]);
+
+// Minimum keyword length (single-word must be this long unless it's a known tech abbreviation)
+const MIN_KEYWORD_LENGTH = 3;
+const SHORT_TECH_TERMS = new Set([
+  'sql','api','aws','gcp','ml','ai','ui','ux','qa','db','etl','bi','ci','cd',
+  'git','ios','sdk','ide','orm','crm','erp','sso','jwt','css','html','xml',
+  'go','c++','r','vim','gtm','kpi','okr','roi','mvp','prd','pod','sre','pm',
 ]);
 
 export interface ExtractedJDData {
@@ -32,70 +82,96 @@ export interface ExtractedJDData {
 
 function tokenize(text: string): string[] {
   return text
-    .replace(/[^\w\s.#+]/g, ' ')
+    .replace(/[^\w\s.#+\-\/]/g, ' ')  // Keep / for A/B, - for hyphenated terms
     .split(/\s+/)
-    .map(w => w.trim())
-    .filter(w => w.length > 1 && !STOP_WORDS.has(w.toLowerCase()));
+    .map(w => w.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '').trim())  // strip leading/trailing punct
+    .filter(w => {
+      if (!w) return false;
+      const lower = w.toLowerCase();
+      if (STOP_WORDS.has(lower)) return false;
+      // Keep short known tech terms
+      if (SHORT_TECH_TERMS.has(lower)) return true;
+      // Skip single chars and very short words (unless acronym-like all-caps)
+      if (w.length < MIN_KEYWORD_LENGTH) return false;
+      // Skip pure numbers
+      if (/^\d+$/.test(w)) return false;
+      return true;
+    });
 }
 
 function computeTFIDF(text: string): Map<string, number> {
   const words = tokenize(text);
   const freq = new Map<string, number>();
-
   for (const word of words) {
     const lower = word.toLowerCase();
     freq.set(lower, (freq.get(lower) || 0) + 1);
   }
-
-  const maxFreq = Math.max(...freq.values());
+  const maxFreq = Math.max(...freq.values(), 1);
   const tfidf = new Map<string, number>();
-
   for (const [word, count] of freq) {
     tfidf.set(word, count / maxFreq);
   }
-
   return tfidf;
 }
 
+// Multi-word technical terms — exhaustive list covering major roles
 function extractMultiWordTerms(text: string): string[] {
-  const multiWordPatterns = [
-    // Programming / tech
-    /\b(machine learning|deep learning|natural language processing|computer vision|data science|software engineering|product management|project management|business development|customer success|supply chain|user experience|user interface|full stack|back.?end|front.?end|ci\/cd|devops|test.?driven development|agile scrum)\b/gi,
-    // Tools & platforms
-    /\b(google analytics|google ads|microsoft azure|amazon web services|google cloud|power bi|tableau desktop|microsoft office|adobe creative|github actions|azure devops|aws lambda|apache spark|apache kafka)\b/gi,
-    // Frameworks
-    /\b(react\.js|node\.js|next\.js|vue\.js|angular\.js|spring boot|django rest|express\.js|ruby on rails)\b/gi,
+  const patterns = [
+    // Core tech
+    /\b(machine learning|deep learning|natural language processing|computer vision|large language models?|generative ai|artificial intelligence)\b/gi,
+    /\b(product management|project management|program management|change management|risk management|stakeholder management|vendor management|account management)\b/gi,
+    /\b(user experience|user interface|user research|user testing|usability testing|design thinking)\b/gi,
+    /\b(data analytics|data analysis|data science|data engineering|data modeling|data visualization|business intelligence|business analytics)\b/gi,
+    /\b(product strategy|go.?to.?market|gtm strategy|market research|market analysis|competitive analysis|competitive intelligence)\b/gi,
+    /\b(a\/b testing|ab testing|split testing|multivariate testing)\b/gi,
+    /\b(agile methodology|agile development|scrum framework|kanban board|sprint planning|backlog refinement|backlog grooming)\b/gi,
+    /\b(customer success|customer experience|customer journey|customer satisfaction|net promoter score|nps)\b/gi,
+    /\b(software development|software engineering|full.?stack|front.?end|back.?end|web development|mobile development)\b/gi,
+    /\b(cloud computing|cloud architecture|cloud infrastructure|cloud native)\b/gi,
+    /\b(devops|site reliability|platform engineering|infrastructure as code)\b/gi,
+    /\b(ci\/cd|continuous integration|continuous deployment|continuous delivery)\b/gi,
+    /\b(system design|distributed systems|microservices architecture|event.?driven architecture|service.?oriented architecture)\b/gi,
+    /\b(supply chain|operations management|process improvement|lean manufacturing|six sigma)\b/gi,
+    /\b(financial modeling|financial analysis|financial planning|fp&a|profit.? loss)\b/gi,
+    /\b(search engine optimization|search engine marketing|pay per click|content marketing|digital marketing|growth hacking|growth marketing)\b/gi,
+    /\b(test automation|automated testing|unit testing|integration testing|end.?to.?end testing|quality assurance)\b/gi,
+    /\b(object.?oriented programming|functional programming|test.?driven development|behavior.?driven development|domain.?driven design)\b/gi,
+    /\b(restful api|rest api|graphql api|api design|api development|api integration)\b/gi,
+    /\b(product roadmap|product vision|product discovery|product analytics|product led growth)\b/gi,
+    /\b(okr framework|okr setting|key results|objectives.*key results)\b/gi,
+    /\b(rice prioritization|moscow framework|kano model|jobs to be done|jtbd)\b/gi,
+    /\b(cross.?functional|cross functional teams?)\b/gi,
+    /\b(power bi|tableau desktop|google analytics|google ads|microsoft azure|google cloud|amazon web services)\b/gi,
+    /\b(node\.?js|react\.?js|vue\.?js|angular\.?js|next\.?js|spring boot|django rest|ruby on rails)\b/gi,
+    /\b(azure devops|github actions|jenkins pipeline|gitlab ci)\b/gi,
   ];
 
   const found: string[] = [];
-  for (const pattern of multiWordPatterns) {
+  for (const pattern of patterns) {
+    pattern.lastIndex = 0;
     const matches = text.matchAll(pattern);
     for (const match of matches) {
-      found.push(match[0].trim());
+      found.push(match[0].trim().toLowerCase().replace(/\s+/g, ' '));
     }
   }
-
-  return [...new Set(found.map(t => t.replace(/\s+/g, ' ')))];
+  return [...new Set(found)];
 }
 
 function detectExperienceLevel(text: string): ExperienceLevel {
   const lower = text.toLowerCase();
-
   if (/chief|c-?suite|c.?level|vp of|vice president/.test(lower)) return 'c-suite';
-  if (/vp\b|vice president/.test(lower)) return 'vp';
+  if (/\bvp\b|vice president/.test(lower)) return 'vp';
   if (/director of|director,|head of/.test(lower)) return 'director';
   if (/staff engineer|principal engineer|staff .* engineer/.test(lower)) return 'staff';
   if (/senior|sr\.|lead |tech lead|team lead/.test(lower)) return 'senior';
   if (/mid.?level|mid.?senior|3.{0,5}years|4.{0,5}years|5.{0,5}years/.test(lower)) return 'mid';
   if (/junior|entry.?level|associate|0.{0,5}years|1.{0,5}years|2.{0,5}years|new grad|graduate/.test(lower)) return 'junior';
-
   return 'mid';
 }
 
 function detectRoleCategory(text: string, role: string): RoleCategory {
   const combined = (text + ' ' + role).toLowerCase();
-
-  if (/software|engineer|developer|devops|sre|backend|frontend|full.?stack|devops|platform|mobile|ios|android/.test(combined)) return 'software-engineering';
+  if (/software|engineer|developer|devops|sre|backend|frontend|full.?stack|platform|mobile|ios|android/.test(combined)) return 'software-engineering';
   if (/data scientist|machine learning|ml engineer|ai engineer|data analyst|analytics|data engineer/.test(combined)) return 'data-science';
   if (/product manager|pm\b|product owner|po\b|product lead/.test(combined)) return 'product-management';
   if (/design|ux|ui|user experience|user interface|creative/.test(combined)) return 'design';
@@ -107,7 +183,6 @@ function detectRoleCategory(text: string, role: string): RoleCategory {
   if (/nurse|doctor|physician|clinical|medical|healthcare|health/.test(combined)) return 'healthcare';
   if (/operations|ops|supply chain|logistics|process|coo/.test(combined)) return 'operations';
   if (/customer success|csm|account manager|support|cx\b/.test(combined)) return 'customer-success';
-
   return 'other';
 }
 
@@ -124,19 +199,14 @@ function splitRequiredVsPreferred(jdText: string): { required: string; preferred
 
   for (const line of lines) {
     const lower = line.toLowerCase();
-    if (/nice.to.have|preferred|bonus|plus|desired|ideal/.test(lower)) {
+    if (/nice.to.have|preferred|bonus|plus|desired|ideal|good to have/.test(lower)) {
       inPreferred = true;
-    } else if (/required|must have|qualifications|requirements|you (will|should|must)/.test(lower)) {
+    } else if (/required|must have|qualifications|requirements|you (will|should|must)|responsibilities/.test(lower)) {
       inPreferred = false;
     }
-
-    if (inPreferred) {
-      preferred += line + '\n';
-    } else {
-      required += line + '\n';
-    }
+    if (inPreferred) preferred += line + '\n';
+    else required += line + '\n';
   }
-
   return { required, preferred };
 }
 
@@ -154,57 +224,75 @@ export function analyzeJD(jdText: string, role: string): ExtractedJDData {
   const tfidfScores = computeTFIDF(allText);
   const multiWordTerms = extractMultiWordTerms(allText);
 
-  // Combine single tokens and multi-word terms
-  const candidateKeywords = new Map<string, number>();
-
-  for (const [word, score] of tfidfScores) {
-    if (word.length > 2 && score > 0.1) {
-      candidateKeywords.set(word, score);
-    }
-  }
-
-  for (const term of multiWordTerms) {
-    candidateKeywords.set(term.toLowerCase(), 1.5);
-  }
-
   const detectedCategory = detectRoleCategory(allText, role);
   const detectedLevel = detectExperienceLevel(allText);
   const requiredYears = extractYearsRequired(allText);
 
-  // Get role-specific keywords to boost
+  // Get role-specific seed keywords to boost relevance
   const roleData = roleKeywords[detectedCategory];
   const levelKey = detectedLevel === 'junior' ? 'entry' : detectedLevel;
   const coreSkills = (roleData?.core_skills || []).map((s: string) => s.toLowerCase());
   const levelSkills = ((roleData as Record<string, string[]>)?.[levelKey] || []).map((s: string) => s.toLowerCase());
 
-  // Score each candidate keyword
-  const scored: Array<{ keyword: string; score: number; section: 'required' | 'preferred' }> = [];
+  // Score each keyword
+  type ScoredKeyword = { keyword: string; score: number; section: 'required' | 'preferred' };
+  const scored: ScoredKeyword[] = [];
 
-  for (const [keyword, baseScore] of candidateKeywords) {
-    const inCore = coreSkills.some(s => s.includes(keyword) || keyword.includes(s));
-    const inLevel = levelSkills.some(s => s.includes(keyword) || keyword.includes(s));
-    const inRequired = required.toLowerCase().includes(keyword);
-    const inPreferred = preferred.toLowerCase().includes(keyword);
-
-    const finalScore = baseScore * (inCore ? 2 : 1) * (inLevel ? 1.5 : 1);
-    const section = inRequired ? 'required' : 'preferred';
-
-    if (inRequired || inPreferred || inCore || inLevel) {
-      scored.push({ keyword, score: finalScore, section });
+  // Add multi-word terms first (highest quality)
+  for (const term of multiWordTerms) {
+    const inRequired = required.toLowerCase().includes(term);
+    const inPreferred = preferred.toLowerCase().includes(term);
+    if (inRequired || inPreferred) {
+      scored.push({
+        keyword: term,
+        score: 3.0,  // Highest priority
+        section: inRequired ? 'required' : 'preferred',
+      });
     }
   }
 
+  // Add single-word TF-IDF keywords, boosted by role relevance
+  for (const [word, baseScore] of tfidfScores) {
+    if (word.length < MIN_KEYWORD_LENGTH && !SHORT_TECH_TERMS.has(word)) continue;
+    // Skip if already captured in a multi-word term
+    if (multiWordTerms.some(t => t.includes(word))) continue;
+
+    const inCore = coreSkills.some(s => s === word || s.includes(word));
+    const inLevel = levelSkills.some(s => s === word || s.includes(word));
+    const inRequired = required.toLowerCase().includes(word);
+    const inPreferred = preferred.toLowerCase().includes(word);
+
+    if (!inRequired && !inPreferred) continue;
+
+    const finalScore = baseScore * (inCore ? 2.5 : 1) * (inLevel ? 2 : 1);
+    scored.push({
+      keyword: word,
+      score: finalScore,
+      section: inRequired ? 'required' : 'preferred',
+    });
+  }
+
+  // Sort by score, deduplicate
   scored.sort((a, b) => b.score - a.score);
 
-  const top50 = scored.slice(0, 50);
-  const requiredKeywords = top50
+  const seen = new Set<string>();
+  const deduped: ScoredKeyword[] = [];
+  for (const k of scored) {
+    if (!seen.has(k.keyword)) {
+      seen.add(k.keyword);
+      deduped.push(k);
+    }
+  }
+
+  const requiredKeywords = deduped
     .filter(k => k.section === 'required')
     .map(k => k.keyword)
     .slice(0, 25);
-  const preferredKeywords = top50
+
+  const preferredKeywords = deduped
     .filter(k => k.section === 'preferred')
     .map(k => k.keyword)
-    .slice(0, 25);
+    .slice(0, 15);
 
   return {
     requiredKeywords,
