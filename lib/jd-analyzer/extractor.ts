@@ -192,6 +192,22 @@ function extractYearsRequired(text: string): number | undefined {
 }
 
 function splitRequiredVsPreferred(jdText: string): { required: string; preferred: string } {
+  // Handle both inline format ("Required: X. Preferred: Y") and multiline format
+  const PREFERRED_MARKERS = /\b(nice[\s-]to[\s-]have|preferred[:\s]|good[\s-]to[\s-]have|bonus[:\s]|desired[:\s]|optional[:\s])\b/i;
+  const REQUIRED_MARKERS = /\b(required[:\s]|must[\s-]have[:\s]|qualifications[:\s]|requirements[:\s]|responsibilities[:\s]|what you.ll do|what we.re looking for)\b/i;
+
+  // Try inline split first (single paragraph format)
+  const preferredMatch = PREFERRED_MARKERS.exec(jdText);
+  if (preferredMatch && preferredMatch.index > 50) {
+    // JD has an inline "Preferred:" marker — split at that point
+    const splitPoint = preferredMatch.index;
+    return {
+      required: jdText.slice(0, splitPoint),
+      preferred: jdText.slice(splitPoint),
+    };
+  }
+
+  // Fall back to line-by-line processing
   const lines = jdText.split('\n');
   let required = '';
   let preferred = '';
@@ -199,14 +215,21 @@ function splitRequiredVsPreferred(jdText: string): { required: string; preferred
 
   for (const line of lines) {
     const lower = line.toLowerCase();
-    if (/nice.to.have|preferred|bonus|plus|desired|ideal|good to have/.test(lower)) {
+    if (PREFERRED_MARKERS.test(lower)) {
       inPreferred = true;
-    } else if (/required|must have|qualifications|requirements|you (will|should|must)|responsibilities/.test(lower)) {
+    } else if (REQUIRED_MARKERS.test(lower)) {
       inPreferred = false;
     }
     if (inPreferred) preferred += line + '\n';
     else required += line + '\n';
   }
+
+  // If nothing was classified as required (entire JD went to preferred due to early marker),
+  // treat the full text as required — better to over-match than under-match
+  if (!required.trim()) {
+    return { required: jdText, preferred: '' };
+  }
+
   return { required, preferred };
 }
 
