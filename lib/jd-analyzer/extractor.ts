@@ -58,6 +58,18 @@ const STOP_WORDS = new Set([
   // Short/numeric
   '1','2','3','4','5','6','7','8','9','10','one','two','three','four','five',
   'six','seven','eight','nine','ten','plus','minus',
+  // Location / geography words (appear in JD headers, not skills)
+  'location','located','onsite','remote','hybrid','office','hq','headquarters',
+  'bangalore','bengaluru','mumbai','delhi','hyderabad','chennai','pune','kolkata',
+  'india','indian','us','usa','uk','united','states','kingdom','australia','canada',
+  'singapore','dubai','uae','germany','france','europe','asia','apac',
+  // Time expressions
+  'week','weeks','weekly','daily','monthly','annually','hours','hour','per',
+  // Job posting boilerplate
+  'about','overview','summary','description','responsibilities','qualification',
+  'qualifications','benefits','compensation','salary','range','package',
+  'eoe','equal','opportunity','employer','diversity','inclusion','inclusive',
+  'apply','now','today','immediately','urgent','openings','opening','vacancy',
 ]);
 
 // Minimum keyword length (single-word must be this long unless it's a known tech abbreviation)
