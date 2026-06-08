@@ -2,10 +2,9 @@
 
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Zap, Globe, Lock, Star, ChevronRight, BarChart2, FileText, Download, Sparkles } from 'lucide-react';
+import { Shield, Globe, Lock, Star, BarChart2, FileText, Download, Sparkles } from 'lucide-react';
 import { ResumeUploader } from '@/components/ResumeUploader';
 import { JDAnalyzer } from '@/components/JDAnalyzer';
-import { Button } from '@/components/ui/button';
 import type { ResumeData, JobContext } from '@/types/resume';
 
 const FEATURES = [
@@ -43,7 +42,7 @@ export default function HomePage() {
     if (!resume) return;
     sessionStorage.setItem('ats-resume-data', JSON.stringify({ resume, jobContext: null }));
     router.push('/resume');
-  }, [resume]);
+  }, [resume, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-indigo-950 text-white">

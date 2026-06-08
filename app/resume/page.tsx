@@ -29,30 +29,7 @@ export default function ResumePage() {
   const [saved, setSaved] = useState(false);
   const scoreDebounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Load from sessionStorage on mount
-  useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem('ats-resume-data');
-      if (stored) {
-        const { resume: r, jobContext: jc } = JSON.parse(stored);
-        if (r) setResume(r);
-        if (jc) setJobContext(jc);
-      }
-    } catch {}
-  }, []);
-
-  // Auto-score when resume changes (debounced)
-  useEffect(() => {
-    if (!resume || !jobContext) return;
-
-    clearTimeout(scoreDebounceRef.current);
-    scoreDebounceRef.current = setTimeout(() => {
-      runScoring(resume, jobContext);
-    }, 800);
-
-    return () => clearTimeout(scoreDebounceRef.current);
-  }, [resume, jobContext]);
-
+  // Declare runScoring before the useEffect that references it
   const runScoring = useCallback(async (r: ResumeData, jc: JobContext) => {
     setIsScoring(true);
     setScoreError(null);
@@ -70,6 +47,30 @@ export default function ResumePage() {
       setIsScoring(false);
     }
   }, []);
+
+  // Load from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem('ats-resume-data');
+      if (stored) {
+        const { resume: r, jobContext: jc } = JSON.parse(stored);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (r) setResume(r);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (jc) setJobContext(jc);
+      }
+    } catch {}
+  }, []);
+
+  // Auto-score when resume changes (debounced)
+  useEffect(() => {
+    if (!resume || !jobContext) return;
+    clearTimeout(scoreDebounceRef.current);
+    scoreDebounceRef.current = setTimeout(() => {
+      runScoring(resume, jobContext);
+    }, 800);
+    return () => clearTimeout(scoreDebounceRef.current);
+  }, [resume, jobContext, runScoring]);
 
   const handleAnalyze = useCallback(async (jc: JobContext) => {
     setJobContext(jc);
